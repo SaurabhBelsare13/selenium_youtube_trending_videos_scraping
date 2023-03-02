@@ -4,6 +4,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
 import pandas as pd
+import smtplib
+import os
 
 
 YOUTUBE_TRENDING_URL = "https://www.youtube.com/feed/trending"
@@ -42,7 +44,8 @@ def parse_video(video):
     views = metadata_spans[0].text.replace('views',' ')
     uploded = metadata_spans[1].text
 
-    description = video.find_element(By.ID,'description-text')
+    description_tag = video.find_element(By.ID,'description-text')
+    description = description_tag.text
 
     return { 
       'title': title, 
@@ -53,9 +56,40 @@ def parse_video(video):
       'views': views,
       'uploded':uploded
      }
-
   
+def send_email():
+  try:
+      server_ssl = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+      server_ssl.ehlo() 
+        
+      Sender_email = 'demo04949@gmail.com'
+      Receiver_email = 'demo04949@gmail.com'
+      Sender_password = os.environ['GMAIL_PASSWORD']
+      print('password : ',Sender_password)
+    
+        
+    
+      subject = 'text msg from jupyter notebook'
+      body = 'Hey, this is msg is sent by jupyter notebook'
+
+      email_text = f"""\
+      From:{Sender_email}
+      To: {Receiver_email}
+      Subject: {subject}
+
+      {body}
+      """
+      server_ssl.login(Sender_email, Sender_password)
+      server_ssl.send_email(Sender_email,Receiver_email,email_text)
+      server_ssl.close
+  
+      
+  except:
+    print ('Something went wrong...')
+
+
 if __name__ == "__main__":
+  
   print('getting driver')
   driver = get_driver()
     
@@ -73,7 +107,11 @@ if __name__ == "__main__":
   
   videos_df.to_csv('youtube_trend.csv')
   
+  print("send an email with results")
+
   
+
+
 
 
 
